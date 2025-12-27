@@ -41,13 +41,16 @@ async def read_my_products(
     current_user=Depends(get_current_active_user),
     admin:User=Depends(require_role("admin"))
 ):
-    products = get_products(db,current_user.id)
+    products = db.query(Product).filter(Product.is_delete==False,
+        Product.owner_id==current_user.id
+    ).all()
+
     if not products:
         raise HTTPException(status_code=404, detail="No products found")
     return products
 
 
-@product_router.get("/admin/{product_id}", response_model=ProductResponse)
+@product_router.get("/{product_id}/admin/", response_model=ProductResponse)
 async def read_my_single_product(
     product_id: int,
     db: Session = Depends(get_db),

@@ -30,3 +30,9 @@ class ProductResponse(ProductBase):
         "from_attributes": True  
     }
 
+
+class UserProductResponse(ProductBase):
+  id:int
+  model_config = {
+        "from_attributes": True  
+    }

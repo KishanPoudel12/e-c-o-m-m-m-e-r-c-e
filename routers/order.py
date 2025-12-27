@@ -11,19 +11,20 @@ from crud.order import (
 from schemas.order import OrderCreate, OrderUpdate, OrderResponse
 from database import get_db
 from auth import get_current_active_user
+from models.user import User
 
 order_router = APIRouter(
     prefix="/orders",
-    tags=["Orders"],
+    tags=["My Orders"],
 )
 
 # Get all orders
 @order_router.get("/", response_model=list[OrderResponse])
 async def read_orders(
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_active_user)
+    current_user:User=Depends(get_current_active_user)
 ):
-    orders = get_orders(db)
+    orders = get_orders(db,current_user)
     if not orders:
         raise HTTPException(status_code=404, detail="No orders found")
     return orders
@@ -35,9 +36,11 @@ async def read_single_order(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_active_user)
 ):
-    order = get_order_by_id(db, order_id)
+    order = get_order_by_id(db, order_id,current_user)
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
+    if order.owner_id != current_user.id:
+        raise HTTPException(status_code=404, detail="Cannot Read Other's Order")
     return order
 
 # Create new order
@@ -60,9 +63,14 @@ async def update_existing_order(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_active_user)
 ):
-    updated_order = update_order(db, order_id, data)
+    updated_order = update_order(db, order_id, data,current_user)
+
     if not updated_order:
         raise HTTPException(status_code=404, detail="Order not found")
+
+    if updated_order.owner_id != current_user.id:
+        raise HTTPException(status_code=404, detail="Cannot Update Other's Order")
+
     return updated_order
 
 # Delete order
@@ -72,7 +80,9 @@ async def delete_existing_order(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_active_user)
 ):
-    deleted_order = hard_delete_order(db, order_id)
+    deleted_order = hard_delete_order(db, order_id,current_user)
     if not deleted_order:
         raise HTTPException(status_code=404, detail="Order not found")
+    if delete_order.owner_id != current_user.id:
+        raise HTTPException(status_code=404, detail="Cannot Delete Other's Order")
     return deleted_order

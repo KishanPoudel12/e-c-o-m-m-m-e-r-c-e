@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional 
 from .order import OrderResponse
+from .product import UserProductResponse
 class  UserBase(BaseModel):
   username:str
   email:str 
@@ -21,6 +22,7 @@ class UserResponse(BaseModel):
   role:str
   disabled:bool
   orders:list[OrderResponse]=[]
+  products:list[UserProductResponse]=[]
   model_config = {
         "from_attributes": True  
     }

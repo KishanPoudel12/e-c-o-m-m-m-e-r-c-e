@@ -10,11 +10,20 @@ from sqlalchemy.exc import SQLAlchemyError
 from models.order_Item import OrderItem
 from models.order import OrderStatus
 from auth import get_current_active_user,get_current_user
-def get_order_by_id(db: Session, order_id: int,current_user:User=Depends(get_current_user)):
-    return db.query(Order).filter(Order.id == order_id, Order.is_delete==False, Order.owner_id==current_user.id).first()
 
-def get_orders(db: Session,current_user:User=Depends(get_current_user)):
-    return db.query(Order).filter(Order.is_delete==False,Order.owner_id==current_user.id).all()
+
+def get_orders(db: Session, current_user: User):
+    return db.query(Order).filter(
+        Order.is_delete == False,
+        Order.owner_id == current_user.id
+    ).all()
+
+def get_order_by_id(db: Session, order_id: int, current_user: User):
+    return db.query(Order).filter(
+        Order.id == order_id,
+        Order.is_delete == False,
+        Order.owner_id == current_user.id
+    ).first()
 
 
 def calculate_order_total(order:Order):
@@ -60,7 +69,7 @@ def create_order(db: Session, data: OrderCreate, current_user: User):
             new_created_order.items.append(order_item)
             db.add(order_item)
 
-        calculate_order_total( new_created_order)
+        calculate_order_total(new_created_order)
         db.commit()
         db.refresh(new_created_order)
         return new_created_order
@@ -69,9 +78,9 @@ def create_order(db: Session, data: OrderCreate, current_user: User):
         print(e)
         raise HTTPException(status_code=500,detail="Failed to create Order" )
 
-def update_order(db: Session, order_id: int, data: OrderUpdate):
+def update_order(db: Session, order_id: int, data: OrderUpdate,current_user:User):
     try:
-        order_to_update= get_order_by_id(db, order_id)
+        order_to_update= get_order_by_id(db, order_id,current_user)
         if not order_to_update:
             raise HTTPException(status_code=400, detail="Order Not Found")
         if order_to_update.status!= OrderStatus.pending:
@@ -108,9 +117,9 @@ def update_order(db: Session, order_id: int, data: OrderUpdate):
         
         
  
-def soft_delete_order(db:Session, order_id:int):
+def soft_delete_order(db:Session, order_id:int,current_user:User):
     try:
-        order_to_delete = get_order_by_id(db, order_id)
+        order_to_delete = get_order_by_id(db, order_id,current_user)
         if not order_to_delete:
             raise HTTPException(status_code=404, detail="Order not found")
         for item in order_to_delete.items:
@@ -125,9 +134,9 @@ def soft_delete_order(db:Session, order_id:int):
         raise HTTPException(status_code=500,detail="Failed to SoftDelete Order")
 
 
-def hard_delete_order(db: Session, order_id: int):
+def hard_delete_order(db: Session, order_id: int,current_user:User):
     try:
-        order_to_delete = get_order_by_id(db, order_id)
+        order_to_delete = get_order_by_id(db, order_id,current_user)
         if not order_to_delete:
             raise HTTPException(status_code=404, detail="Order not found")
 

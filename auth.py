@@ -97,7 +97,7 @@ async def login_for_access_token(
 
 
 
-@auth_router.get("/me")
+@auth_router.get("/me",response_model=UserResponse)
 async def get_me(current_user:Annotated[User,Depends(get_current_active_user)]):
   return current_user
 
