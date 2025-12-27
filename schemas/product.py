@@ -6,7 +6,6 @@ class ProductBase(BaseModel):
   product_name:str 
   product_description:Optional[str]=None
   price:Decimal = Field(None,gt=0) 
-  image_path:Optional[str]=None
   stock:int =Field(ge=0)
   
   @validator("price",pre=True)
@@ -20,12 +19,12 @@ class ProductUpdate(BaseModel):
   product_name: Optional[str] = None
   product_description: Optional[str] = None
   price: Optional[Decimal] = Field(None,gt=0)
-  image_path: Optional[str] = None
   stock:  Optional[int] = Field(None,gt=0)
 
 class ProductResponse(ProductBase):
   id:int
   owner_id:int
+  image_path:str
   model_config = {
         "from_attributes": True  
     }

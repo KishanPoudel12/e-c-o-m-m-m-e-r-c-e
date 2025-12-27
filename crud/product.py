@@ -11,8 +11,9 @@ def get_product_by_id(db:Session , product_id:int):
 def get_products(db:Session ):
   return db.query(Product).filter(Product.is_delete!=True).all()
 
-def create_product(db:Session , data:ProductCreate,current_user:User):
-  product_data= Product(**data.model_dump(),owner_id=current_user.id)
+def create_product(db:Session , data:ProductCreate,current_user:User,image_path:str):
+  import json
+  product_data= Product(**data.model_dump(),owner_id=current_user.id,image_path=image_path)
   db.add(product_data)
   db.commit()
   db.refresh(product_data)

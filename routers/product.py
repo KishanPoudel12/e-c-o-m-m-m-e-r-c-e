@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException,Depends
+from fastapi import APIRouter, HTTPException,Depends,UploadFile,Form
 from sqlalchemy.orm import Session
 from crud.product import (
   get_product_by_id,
@@ -13,6 +13,7 @@ from database import get_db
 from auth import get_current_user,get_current_active_user, require_role
 from models.user import User
 from models.product import Product
+from cloudinary_utils import upload_image
 
 product_router=APIRouter(
   prefix="/product",
@@ -67,15 +68,36 @@ async def read_my_single_product(
 
 @product_router.post("/create", response_model=ProductResponse)
 async def create_my_new_product(
-    data: ProductCreate,
+    product_name:str =Form(...),
+    product_description:str=Form(...),
+    price:float=Form(...),
+    stock:int =Form(...),
+    image:UploadFile=None,
     db: Session = Depends(get_db),
     current_user=Depends(get_current_active_user),
     admin:User=Depends(require_role("admin"))
-
 ):
-    product = create_product(db, data,current_user)
-    if not product:
+    try:
+        image_url = await upload_image(image)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=e)
+
+    product_create=ProductCreate(
+        product_name=product_name,
+        product_description=product_description,
+        price=price,
+        stock=stock
+    )
+
+    if not product_create:
         raise HTTPException(status_code=400, detail="Product creation failed")
+
+    product = create_product(
+        db=db,
+        data=product_create,
+        current_user=current_user,
+        image_path=image_url
+    )
     return product
 
 
