@@ -51,7 +51,8 @@ def create_order(db: Session, data: OrderCreate, current_user: User):
             product= get_product_by_id(db,item.product_id)
             if not product:
                 raise HTTPException(status_code=400, detail=f"{item.product_id}  does not Exist")   
-            
+            if product.owner_id==current_user:
+                raise HTTPException(status_code=400, detail="Cannot Order Your Own Product ")
             if product.stock < item.quantity:
                 raise HTTPException(status_code=400, detail=f" Only {product.stock } unit stocks left , Cant Order {item.quantity } units ")
 

@@ -30,7 +30,7 @@ def create_user(db:Session ,data:UserCreate,role:str):
 def update_user(db:Session,user_id:int, data:UserUpdate,current_user_id:int):
   user_to_update= get_user_by_id(db, user_id,current_user_id)
   if not user_to_update:
-    return None 
+    raise HTTPException(status_code=403, detail="User does not Exist or Not You")
   update_user= data.model_dump(exclude_unset=True)
   if "password" in update_user:
     updated_password= update_user.pop("password")
@@ -46,8 +46,9 @@ def update_user(db:Session,user_id:int, data:UserUpdate,current_user_id:int):
 
 def delete_user(db:Session, user_id:int,current_user_id:int):
   user_to_delete= get_user_by_id(db, user_id,current_user_id)
+
   if not user_to_delete:
-    return None 
+    raise HTTPException(status_code=403, detail="User does not Exist or Not You")
   db.delete(user_to_delete)
   db.commit()
   return user_to_delete

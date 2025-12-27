@@ -83,6 +83,6 @@ async def delete_existing_order(
     deleted_order = hard_delete_order(db, order_id,current_user)
     if not deleted_order:
         raise HTTPException(status_code=404, detail="Order not found")
-    if delete_order.owner_id != current_user.id:
+    if deleted_order.owner_id != current_user.id:
         raise HTTPException(status_code=404, detail="Cannot Delete Other's Order")
     return deleted_order

@@ -23,9 +23,10 @@ product_router=APIRouter(
 
 @product_router.get("/",response_model=list[ProductResponse])
 async def list_product(
-    db:Session=Depends(get_db)
+    db:Session=Depends(get_db),
+    current_user=Depends(get_current_active_user)
 ):
-  return db.query(Product).filter(Product.is_delete!=True).all()
+  return db.query(Product).filter(Product.is_delete!=True,Product.owner_id!= current_user.id).all()
 
 @product_router.get("/{product_id}",response_model=ProductResponse)
 async def list_product_by_id(
