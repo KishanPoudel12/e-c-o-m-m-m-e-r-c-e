@@ -25,7 +25,6 @@ class UserResponse(BaseModel):
         "from_attributes": True  
     }
 
-
 #jwt work 
 class Token(BaseModel):
   access_token:str 

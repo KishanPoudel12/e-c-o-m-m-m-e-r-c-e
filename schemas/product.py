@@ -25,6 +25,7 @@ class ProductUpdate(BaseModel):
 
 class ProductResponse(ProductBase):
   id:int
+  owner_id:int
   model_config = {
         "from_attributes": True  
     }

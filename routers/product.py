@@ -10,7 +10,9 @@ from crud.product import (
 
 from schemas.product import ProductBase, ProductCreate, ProductUpdate, ProductResponse
 from database import get_db
-from auth import get_current_user,get_current_active_user
+from auth import get_current_user,get_current_active_user, require_role
+from models.user import User
+from models.product import Product
 
 product_router=APIRouter(
   prefix="/product",
@@ -19,34 +21,53 @@ product_router=APIRouter(
 )
 
 
-@product_router.get("/", response_model=list[ProductResponse])
-async def read_products(
-    db: Session = Depends(get_db),
-    current_user=Depends(get_current_active_user)
+@product_router.get("/",response_model=list[ProductResponse])
+async def list_product(
+    db:Session=Depends(get_db)
 ):
-    products = get_products(db)
+  return db.query(Product).filter(Product.is_delete!=True).all()
+
+@product_router.get("/{product_id}",response_model=ProductResponse)
+async def list_product_by_id(
+    product_id:int,
+    db:Session=Depends(get_db)
+):
+  return db.query(Product).filter(Product.id==product_id,Product.is_delete!=True).first()
+
+
+@product_router.get("/admin/", response_model=list[ProductResponse])
+async def read_my_products(
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_active_user),
+    admin:User=Depends(require_role("admin"))
+):
+    products = get_products(db,current_user.id)
     if not products:
         raise HTTPException(status_code=404, detail="No products found")
     return products
 
 
-@product_router.get("/{product_id}", response_model=ProductResponse)
-async def read_single_product(
+@product_router.get("/admin/{product_id}", response_model=ProductResponse)
+async def read_my_single_product(
     product_id: int,
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_active_user)
+    current_user=Depends(get_current_active_user),
+    admin:User=Depends(require_role("admin"))
+
 ):
-    product = get_product_by_id(db, product_id)
+    product = get_product_by_id(db, product_id,current_user.id)
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
     return product
 
 
 @product_router.post("/create", response_model=ProductResponse)
-async def create_new_product(
+async def create_my_new_product(
     data: ProductCreate,
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_active_user)
+    current_user=Depends(get_current_active_user),
+    admin:User=Depends(require_role("admin"))
+
 ):
     product = create_product(db, data,current_user)
     if not product:
@@ -55,25 +76,29 @@ async def create_new_product(
 
 
 @product_router.put("/{product_id}", response_model=ProductResponse)
-async def update_existing_product(
+async def update_my_existing_product(
     product_id: int,
     data: ProductUpdate,
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_active_user)
+    current_user=Depends(get_current_active_user),
+    admin:User=Depends(require_role("admin"))
+
 ):
-    updated_product = update_product(db, product_id, data)
+    updated_product = update_product(db, product_id, data,current_user.id)
     if not updated_product:
         raise HTTPException(status_code=404, detail="Product not found")
     return updated_product
 
 
 @product_router.delete("/{product_id}", response_model=ProductResponse)
-async def delete_existing_product(
+async def delete_my_existing_product(
     product_id: int,
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_active_user)
+    current_user=Depends(get_current_active_user),
+    admin:User=Depends(require_role("admin"))
+
 ):
-    deleted_product = delete_product(db, product_id)
+    deleted_product = delete_product(db, product_id,current_user.id)
     if not deleted_product:
         raise HTTPException(status_code=404, detail="Product not found")
     return deleted_product

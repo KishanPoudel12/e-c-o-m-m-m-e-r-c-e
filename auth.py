@@ -14,6 +14,7 @@ from models.user import User
 from crud.user import (
   get_user_by_id,
 )
+
 auth_router= APIRouter(
   prefix = "/auth",
   tags=["Auth"]
@@ -24,6 +25,14 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM","HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES",30))
+
+
+def require_role(role:str):
+  def role_checker(current_user:User=Depends(get_current_user)):
+    if current_user.role!=role:
+      raise HTTPException(status_code=403,detail=f"Unauthorized User Role ,Role={current_user.role} ,Required={role}")
+    return current_user
+  return role_checker
 
 
 def authenticate_user(db:Session , username:str, password:str):
@@ -56,7 +65,7 @@ def get_current_user(token : Annotated[str,Depends(oauth2_scheme)],db:Session=De
       raise credential_exception
   except JWTError:
     raise credential_exception
-  user= get_user_by_id(db,user_id)
+  user= get_user_by_id(db,user_id,user_id)
   if not user:
     raise credential_exception
   return user
