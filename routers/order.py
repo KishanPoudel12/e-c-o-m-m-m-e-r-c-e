@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends,Query
 from sqlalchemy.orm import Session
 from crud.order import (
     get_order_by_id,
@@ -6,7 +6,7 @@ from crud.order import (
     create_order,
     update_order,
     hard_delete_order,
-    soft_delete_order
+    soft_delete_order,
 )
 from schemas.order import OrderCreate, OrderUpdate, OrderResponse
 from database import get_db
@@ -18,16 +18,21 @@ order_router = APIRouter(
     tags=["My Orders"],
 )
 
+
 # Get all orders
 @order_router.get("/", response_model=list[OrderResponse])
 async def read_orders(
+    skip:int =Query(0,ge=0),
+    limit:int =Query(0,ge=1),
     db: Session = Depends(get_db),
     current_user:User=Depends(get_current_active_user)
 ):
-    orders = get_orders(db,current_user)
+    orders = get_orders( db,current_user,skip, limit )
     if not orders:
         raise HTTPException(status_code=404, detail="No orders found")
     return orders
+
+
 
 # Get single order by ID
 @order_router.get("/{order_id}", response_model=OrderResponse)

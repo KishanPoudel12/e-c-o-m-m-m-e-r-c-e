@@ -53,3 +53,22 @@ def delete_user(db:Session, user_id:int,current_user_id:int):
   db.commit()
   return user_to_delete
 
+
+
+#for payment i have done this 
+def recharge_balance(db:Session, amount:int, current_user:User):
+  if amount< 0 :
+    raise HTTPException(status_code =400, detail="Cannot add negative balance")
+  user=db.query(User).filter(User.id==current_user.id).first()
+
+  if not user:
+    raise HTTPException(status_code=400 , detail ="User Not Found")
+  
+  user.balance+=amount
+  db.commit()
+  db.refresh(user)
+  return { 
+        "message": f"Recharge of Rs {amount} successful",
+        "current_balance": user.balance
+    }
+  

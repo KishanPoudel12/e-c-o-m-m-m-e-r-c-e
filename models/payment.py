@@ -1,35 +1,35 @@
 from __future__ import annotations
 from database import Base
-from sqlalchemy import String, Integer, Float, DateTime, ForeignKey
+from sqlalchemy import String, Integer, Float, DateTime, ForeignKey,Enum, Numeric
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
-
+from models.order import PaymentStatus
+from decimal import Decimal
 class Payment(Base):
     __tablename__ = "payments"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-
+    payer:Mapped[int]=mapped_column(
+        Integer,
+        nullable=False,
+        index=True
+    )
     order_id: Mapped[int] = mapped_column(
         ForeignKey("orders.id"),
         nullable=False,
         index=True
     )
 
-    amount: Mapped[float] = mapped_column(
-        Float,
+    amount: Mapped[Decimal] = mapped_column(
+        Numeric(10, 2),
         nullable=False
     )
 
-    status: Mapped[str] = mapped_column(
-        String,
-        default="pending",
+    status:Mapped[PaymentStatus] = mapped_column(
+        Enum(PaymentStatus),
+        default=PaymentStatus.pending,
         index=True
-    )  # pending | succeeded | failed
-
-    stripe_session_id: Mapped[str | None] = mapped_column(
-        String,
-        nullable=True
-    )
+    ) #pending | paid | withdrawn 
 
     transaction_id: Mapped[str | None] = mapped_column(
         String,
@@ -39,7 +39,8 @@ class Payment(Base):
 
     paid_at: Mapped[datetime | None] = mapped_column(
         DateTime,
-        nullable=True
+        nullable=True,
+        default= datetime.utcnow()
     )
 
     order: Mapped["Order"] = relationship(

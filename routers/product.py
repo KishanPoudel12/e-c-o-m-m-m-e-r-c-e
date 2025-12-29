@@ -14,6 +14,7 @@ from auth import get_current_user,get_current_active_user, require_role
 from models.user import User
 from models.product import Product
 from cloudinary_utils import upload_image
+from utils import pagination
 
 product_router=APIRouter(
   prefix="/product",
@@ -25,9 +26,12 @@ product_router=APIRouter(
 @product_router.get("/",response_model=list[ProductResponse])
 async def list_product(
     db:Session=Depends(get_db),
-    current_user=Depends(get_current_active_user)
+    current_user=Depends(get_current_active_user),
+    skip:int =0,
+    limit:int=0
 ):
-  return db.query(Product).filter(Product.is_delete!=True,Product.owner_id!= current_user.id).all()
+    query= db.query(Product).filter(Product.is_delete!=True,Product.owner_id!= current_user.id)
+    return pagination(query,skip, limit )
 
 @product_router.get("/{product_id}",response_model=ProductResponse)
 async def list_product_by_id(
@@ -43,13 +47,11 @@ async def read_my_products(
     current_user=Depends(get_current_active_user),
     admin:User=Depends(require_role("admin"))
 ):
-    products = db.query(Product).filter(Product.is_delete==False,
+    query = db.query(Product).filter(Product.is_delete==False,
         Product.owner_id==current_user.id
-    ).all()
+    )
+    return pagination(query,skip, limit )
 
-    if not products:
-        raise HTTPException(status_code=404, detail="No products found")
-    return products
 
 
 @product_router.get("/{product_id}/admin/", response_model=ProductResponse)

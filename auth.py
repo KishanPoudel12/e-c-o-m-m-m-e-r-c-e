@@ -20,7 +20,7 @@ auth_router= APIRouter(
   tags=["Auth"]
 )
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM","HS256")
@@ -52,6 +52,7 @@ def create_access_token(data:dict,expires_delta:timedelta|None =None ):
   encoded_jwt=jwt.encode(to_encode , SECRET_KEY, algorithm=ALGORITHM )
   return encoded_jwt
 
+
 def get_current_user(token : Annotated[str,Depends(oauth2_scheme)],db:Session=Depends(get_db)):
   credential_exception= HTTPException(
     status_code=status.HTTP_401_UNAUTHORIZED,
@@ -77,7 +78,7 @@ def get_current_active_user(current_user:Annotated[User, Depends(get_current_use
   return current_user
 
 
-@auth_router.post("/token")
+@auth_router.post("/login")
 async def login_for_access_token(
   form_data:Annotated[OAuth2PasswordRequestForm,Depends()],
   db:Session=Depends(get_db)

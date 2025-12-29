@@ -6,12 +6,19 @@ from datetime import datetime
 import enum
 from decimal import Decimal
 from typing import List
-from .payment import Payment
+# from .payment import Payment
+
 class OrderStatus(enum.Enum):
     pending="pending"
-    paid="paid"
     shipped="shipped"
     cancelled="cancelled"
+
+class PaymentStatus(enum.Enum):
+    pending="pending"
+    paid="paid"
+    withdrawn="withdrawn"
+
+
 
 class Order(Base):
     __tablename__ = "orders"
@@ -47,7 +54,13 @@ class Order(Base):
         Enum(OrderStatus),
         default=OrderStatus.pending,
         index=True
-    )  # pending | paid | shipped | cancelled
+    )  # pending  | paid | cancelled
+
+    payment_status:Mapped[PaymentStatus] = mapped_column(
+        Enum(PaymentStatus),
+        default=PaymentStatus.pending,
+        index=True
+    ) #pending | paid | withdrawn 
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
@@ -71,15 +84,11 @@ class Order(Base):
             cascade="all, delete-orphan"
     )
 
-    payment: Mapped[Payment] = relationship(
-        Payment,
+    payment: Mapped["Payment"] = relationship(
+        "Payment",
         back_populates="order",
         uselist=False
     )
-    
-
-
-
 
 
 

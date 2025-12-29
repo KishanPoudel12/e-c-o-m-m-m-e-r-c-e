@@ -21,6 +21,7 @@ class UserResponse(BaseModel):
   email:str 
   role:str
   disabled:bool
+  balance:int
   orders:list[OrderResponse]=[]
   products:list[UserProductResponse]=[]
   model_config = {

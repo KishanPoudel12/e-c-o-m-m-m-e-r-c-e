@@ -5,18 +5,18 @@ from models.order import Order
 from models.user import User
 from crud.product import get_product_by_id
 from decimal import Decimal
-from fastapi import HTTPException ,Depends
+from fastapi import HTTPException ,Depends,Query
 from sqlalchemy.exc import SQLAlchemyError
 from models.order_Item import OrderItem
 from models.order import OrderStatus
 from auth import get_current_active_user,get_current_user
-
-
-def get_orders(db: Session, current_user: User):
-    return db.query(Order).filter(
+from utils import pagination 
+def get_orders( db: Session, current_user: User,skip:int=0 , limit:int=0 ):
+    query= db.query(Order).filter(
         Order.is_delete == False,
         Order.owner_id == current_user.id
-    ).all()
+    )
+    return pagination(query, skip, limit )
 
 def get_order_by_id(db: Session, order_id: int, current_user: User):
     return db.query(Order).filter(

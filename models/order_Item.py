@@ -7,8 +7,6 @@ import enum
 from decimal import Decimal
 
 
-
-
 class OrderItem(Base):
     __tablename__ = "order_items"
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
