@@ -11,7 +11,7 @@ import models  # load all models before creating tables
 
 app = FastAPI(title="Emart")
 
-# @app.on_event("startup")
+@app.on_event("startup")
 def startup():
     return create_db()
 

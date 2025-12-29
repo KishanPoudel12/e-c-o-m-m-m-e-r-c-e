@@ -18,10 +18,15 @@ def get_db():
     finally:
         db.close()
 
-def create_db():  
-    import models.user
-    import models.product
-    import models.order
-    import models.order_Item
-    import models.payment
-    return Base.metadata.create_all(bind=engine)
+def create_db():
+    try:
+        import models.user
+        import models.product
+        import models.order
+        import models.order_Item
+        import models.payment
+        import models.otp
+        Base.metadata.create_all(bind=engine)
+        print("✅ All tables created successfully (or already exist).")
+    except Exception as e:
+        print(f"❌ Failed to create tables: {e}")
