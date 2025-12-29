@@ -6,7 +6,7 @@ class  UserBase(BaseModel):
   username:str
   email:str 
   password:str 
-
+from schemas.payment import PaymentResponse
 class UserCreate(UserBase):
   pass
 
@@ -24,6 +24,8 @@ class UserResponse(BaseModel):
   balance:int
   orders:list[OrderResponse]=[]
   products:list[UserProductResponse]=[]
+  payments:Optional[list[PaymentResponse]] =[]
+
   model_config = {
         "from_attributes": True  
     }

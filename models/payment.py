@@ -10,7 +10,7 @@ class Payment(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     payer:Mapped[int]=mapped_column(
-        Integer,
+        ForeignKey("users.id"),
         nullable=False,
         index=True
     )
@@ -46,4 +46,9 @@ class Payment(Base):
     order: Mapped["Order"] = relationship(
         "Order",
         back_populates="payment"
+    )
+
+    user: Mapped["User"] = relationship(
+        "User",
+        back_populates="payments"
     )

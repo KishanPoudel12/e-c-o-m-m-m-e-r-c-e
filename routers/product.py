@@ -45,7 +45,9 @@ async def list_product_by_id(
 async def read_my_products(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_active_user),
-    admin:User=Depends(require_role("admin"))
+    admin:User=Depends(require_role("admin")),
+    skip:int =0,
+    limit:int=0
 ):
     query = db.query(Product).filter(Product.is_delete==False,
         Product.owner_id==current_user.id
@@ -62,9 +64,11 @@ async def read_my_single_product(
     admin:User=Depends(require_role("admin"))
 
 ):
-    product = get_product_by_id(db, product_id,current_user.id)
+    product = get_product_by_id(db, product_id)
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
+    if product.owner_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not Your Product")
     return product
 
 
