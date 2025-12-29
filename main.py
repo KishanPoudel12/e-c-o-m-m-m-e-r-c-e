@@ -15,6 +15,10 @@ app = FastAPI(title="Emart")
 def startup():
     return create_db()
 
+@app.get("/")
+def read_root():
+    return {"message": "Welcome to Emart , go to '/docs' to see the docs "}
+
 app.include_router(user_router)
 app.include_router(product_router)
 app.include_router(payment_router)
